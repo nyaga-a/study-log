@@ -10,7 +10,29 @@ function App() {
   const [records, setRecords] = useState<StudyRecord[]>(initialRecords);
   const [content, setContent] = useState("");
   const [minutes, setMinutes] = useState(0);
-  
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [editMinutes, setEditMinutes] = useState(0);
+
+  const handleEditStart = (r: StudyRecord) => {
+    setEditingId(r.id);
+    setEditContent(r.content);// 今の値を編集世の状態にコピーする
+    setEditMinutes(r.minutes);
+  };
+
+  const handleEditCancel = () => setEditingId(null);
+
+  const handleEditSave = () => {
+    setRecords((prev) => 
+      prev.map((rec) => 
+        rec.id === editingId
+          ? { ...rec, content: editContent, minutes: editMinutes }
+          : rec
+        )
+    );
+    setEditingId(null);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     // ブラウザ標準の送信動作をやめて処理はこの中で行う
     e.preventDefault();
@@ -31,10 +53,7 @@ function App() {
   };
 
   const handleDelete = (id: string) => {
-    // TODO: idが一致しないものだけを残した新しい配列を、setRecordsに渡す
-    // ヒント：prev.filter((r) => ...)
-    // setRecords((prev) => prev.filter();
-    setRecords((prev) => prev.filter((rec) => rec.id != id));
+    setRecords((prev) => prev.filter((rec) => rec.id !== id));
   };
 
   return (
@@ -42,19 +61,25 @@ function App() {
       <h1>学習記録</h1>
       <form onSubmit={handleSubmit}>
         <input value={content} onChange={(e) => setContent(e.target.value)} />
-        {/** TODO: minutes用のinput　type="number"の時の値の型に注意 */}
         <input type="number" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} />
         <button type="submit">追加</button>
       </form>
       <ul>
         {records.map((r) => (
           <li  key={r.id}>
-        {/* {records.map((r, index) => (
-          <li  key={index}> */}
-            {r.date} {r.content} {r.minutes} {r.category}
-            <input />
-            <button onClick={() => handleDelete(r.id)}>削除</button>
-            {/* <button onClick={handleDelete(r.id)}>削除</button> */}
+            {editingId === r.id ? (
+              <>
+                {r.date} <input type="text" value={editContent} onChange={(e) => setEditContent(e.target.value)} /> <input type="number" value={editMinutes} onChange={(e) => setEditMinutes(Number(e.target.value))}/> {r.category}
+                <button onClick={handleEditSave}>保存</button>
+                <button onClick={handleEditCancel}>キャンセル</button>
+              </>
+            ) : (
+              <>
+                {r.date} {r.content} {r.minutes} {r.category}
+                <button onClick={() => handleEditStart(r)}>編集</button>
+                <button onClick={() => handleDelete(r.id)}>削除</button>
+              </>
+            )}
           </li>
         ))}
       </ul>
