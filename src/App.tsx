@@ -6,13 +6,24 @@ const initialRecords: StudyRecord[] = [
   { id: "2", date: "2026-10-13", content: "Union型", minutes: 45, category: "TypeScript" },
 ];
 
+const categories = ["TypeScript", "React", "CSS"];
+
 function App() {
   const [records, setRecords] = useState<StudyRecord[]>(initialRecords);
   const [content, setContent] = useState("");
   const [minutes, setMinutes] = useState(0);
+  const [category, setCategory] = useState("TypeScript");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editMinutes, setEditMinutes] = useState(0);
+  const [filterCategory, setFilterCategory] = useState("all");// "all" = 絞り込みなし
+  // 画面に出す配列
+  const visibleRecords = 
+    filterCategory === "all"
+     ? records
+     : records.filter((rec) => rec.category === filterCategory);
+  // 合計時間
+  const total = visibleRecords.reduce((sum, r) => sum + r.minutes, 0);
 
   const handleEditStart = (r: StudyRecord) => {
     setEditingId(r.id);
@@ -43,7 +54,7 @@ function App() {
       date: new Date().toLocaleDateString('sv-SE'), 
       content, 
       minutes, 
-      category: "TypeScript"
+      category
     };
     setRecords((prev) => [...prev, newRecord]);
 
@@ -62,10 +73,25 @@ function App() {
       <form onSubmit={handleSubmit}>
         <input value={content} onChange={(e) => setContent(e.target.value)} />
         <input type="number" value={minutes} onChange={(e) => setMinutes(Number(e.target.value))} />
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          {categories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
         <button type="submit">追加</button>
       </form>
+      <label>
+        絞り込み：
+        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+          <option value="all">すべて</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </label>
+      <p>合計：{total}分</p>
       <ul>
-        {records.map((r) => (
+        {visibleRecords.map((r) => (
           <li  key={r.id}>
             {editingId === r.id ? (
               <>
@@ -83,6 +109,7 @@ function App() {
           </li>
         ))}
       </ul>
+      
     </div>
   );
 }
