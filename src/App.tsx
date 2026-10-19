@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { StudyRecord } from "./types";
 
 const initialRecords: StudyRecord[] = [
@@ -8,8 +8,29 @@ const initialRecords: StudyRecord[] = [
 
 const categories = ["TypeScript", "React", "CSS"];
 
+const STORAGE_KEY = "records";
+
+function loadRecords(): StudyRecord[] {
+  // TODO: localStorage.getItem(STORAGE_KEY)で、保存された文字列を取り出す
+  // TODO: なければ（null）、initialRecordsを返す
+  // TODO: あれば、JSON.parseして返す
+  //       壊れたデータでも画面が真っ白にならないよう、try/catchで囲む
+  try{
+    const storageItem = localStorage.getItem(STORAGE_KEY);
+    if (storageItem !== null) {
+      const parsedItem = JSON.parse(storageItem);
+      return Array.isArray(parsedItem) ? parsedItem : initialRecords;
+    } else {
+      return initialRecords;
+    }
+  } catch (error) {
+    console.error(error);
+    return initialRecords;
+  }
+}
+
 function App() {
-  const [records, setRecords] = useState<StudyRecord[]>(initialRecords);
+  const [records, setRecords] = useState<StudyRecord[]>(loadRecords);
   const [content, setContent] = useState("");
   const [minutes, setMinutes] = useState(0);
   const [category, setCategory] = useState("TypeScript");
@@ -17,6 +38,11 @@ function App() {
   const [editContent, setEditContent] = useState("");
   const [editMinutes, setEditMinutes] = useState(0);
   const [filterCategory, setFilterCategory] = useState("all");// "all" = 絞り込みなし
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  }, [records]);
+
   // 画面に出す配列
   const visibleRecords = 
     filterCategory === "all"
