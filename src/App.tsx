@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { StudyRecord } from "./types";
+import { useLocalStorage } from "./hooks/useLocalStorage";
 
 const initialRecords: StudyRecord[] = [
   { id: "1", date: "2026-10-12", content: "型注釈と型推論", minutes: 60, category: "TypeScript" },
@@ -10,27 +11,10 @@ const categories = ["TypeScript", "React", "CSS"];
 
 const STORAGE_KEY = "records";
 
-function loadRecords(): StudyRecord[] {
-  // TODO: localStorage.getItem(STORAGE_KEY)で、保存された文字列を取り出す
-  // TODO: なければ（null）、initialRecordsを返す
-  // TODO: あれば、JSON.parseして返す
-  //       壊れたデータでも画面が真っ白にならないよう、try/catchで囲む
-  try{
-    const storageItem = localStorage.getItem(STORAGE_KEY);
-    if (storageItem !== null) {
-      const parsedItem = JSON.parse(storageItem);
-      return Array.isArray(parsedItem) ? parsedItem : initialRecords;
-    } else {
-      return initialRecords;
-    }
-  } catch (error) {
-    console.error(error);
-    return initialRecords;
-  }
-}
+const isRecords = (v: unknown): v is StudyRecord[] => Array.isArray(v);
 
 function App() {
-  const [records, setRecords] = useState<StudyRecord[]>(loadRecords);
+  const [records, setRecords] = useLocalStorage(STORAGE_KEY, initialRecords, isRecords);
   const [content, setContent] = useState("");
   const [minutes, setMinutes] = useState(0);
   const [category, setCategory] = useState("TypeScript");
@@ -38,10 +22,7 @@ function App() {
   const [editContent, setEditContent] = useState("");
   const [editMinutes, setEditMinutes] = useState(0);
   const [filterCategory, setFilterCategory] = useState("all");// "all" = 絞り込みなし
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }, [records]);
+  const [error, setError] = useState("");
 
   // 画面に出す配列
   const visibleRecords = 
@@ -73,6 +54,16 @@ function App() {
   const handleSubmit = (e: React.FormEvent) => {
     // ブラウザ標準の送信動作をやめて処理はこの中で行う
     e.preventDefault();
+
+    setError("");
+    if(content.trim() === ""){
+      setError("内容を入力してください");
+      return
+    }
+    if(minutes < 1){
+      setError("時間[分]を入力して下さい");
+      return
+    }
     
     // 新しいStudyRecordを作る（idはcrypto.randomUUID()が使える）
     const newRecord = { 
@@ -106,6 +97,7 @@ function App() {
         </select>
         <button type="submit">追加</button>
       </form>
+      {error && <p role="alert">{error} </p>}
       <label>
         絞り込み：
         <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
