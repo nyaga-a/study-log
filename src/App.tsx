@@ -13,6 +13,16 @@ const STORAGE_KEY = "records";
 
 const isRecords = (v: unknown): v is StudyRecord[] => Array.isArray(v);
 
+function validate(content: string, minutes: number): string {
+  if(content.trim() === ""){
+    return "内容を入力してください";
+  }
+  if(minutes < 1){
+    return "時間[分]を入力してください";
+  }
+  return "";
+}
+
 function App() {
   const [records, setRecords] = useLocalStorage(STORAGE_KEY, initialRecords, isRecords);
   const [content, setContent] = useState("");
@@ -41,6 +51,13 @@ function App() {
   const handleEditCancel = () => setEditingId(null);
 
   const handleEditSave = () => {
+    setError("");
+    const message = validate(editContent, editMinutes);
+    if(message !== ""){
+      setError(message);
+      return
+    }
+
     setRecords((prev) => 
       prev.map((rec) => 
         rec.id === editingId
@@ -56,15 +73,12 @@ function App() {
     e.preventDefault();
 
     setError("");
-    if(content.trim() === ""){
-      setError("内容を入力してください");
+    const message = validate(content, minutes);
+    if(message !== ""){
+      setError(message);
       return
     }
-    if(minutes < 1){
-      setError("時間[分]を入力して下さい");
-      return
-    }
-    
+
     // 新しいStudyRecordを作る（idはcrypto.randomUUID()が使える）
     const newRecord = { 
       id: crypto.randomUUID(), 
@@ -97,7 +111,7 @@ function App() {
         </select>
         <button type="submit">追加</button>
       </form>
-      {error && <p role="alert">{error} </p>}
+      {error && <p role="alert">{error}</p>}
       <label>
         絞り込み：
         <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>

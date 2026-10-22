@@ -17,15 +17,18 @@ export function useLocalStorage<T>(
             if (isValid(parsedItem)) return parsedItem;
             return initialValue;
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return initialValue;
         }
-
     });
 
     useEffect(() => {
-        // valueが変わったら保存する
-        localStorage.setItem(key, JSON.stringify(value));
+        try {
+            // valueが変わったら保存する
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            console.error(error);
+        }
     }, [key, value]);
 
     return [value, setValue] as const;
