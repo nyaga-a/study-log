@@ -15,7 +15,6 @@ export function StudyRecordItem({ record, onUpdate, onDelete }: Props) {
     const [error, setError] = useState("");
 
     const handleEditSave = () => {
-        console.log("save", editContent, validate(editContent, editMinutes));// ※後で消す
         setError("");
         const message = validate(editContent, editMinutes);
         if (message !== "") {
