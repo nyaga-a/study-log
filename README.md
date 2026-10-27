@@ -1,32 +1,59 @@
-# React + TypeScript + Vite
+# 学習記録アプリ
+- 本アプリは、学習した内容と時間を記録・管理するアプリである。
+- 日付、内容、時間、区分を追加・編集・削除でき、一覧に表示される。
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## 機能
+- 追加機能：新規履歴を追加。内容、時間、区分を入力できる
+- 編集機能：保存済みの記録の編集。内容、時間を編集できる
+- 削除機能：記録を1件削除
+- データの保存：localStorageに保存し、再読み込みしても記録が残る
+- 絞り込み：区分で絞り込み
+- 合計時間の表示：時間[分]の合計
+- 入力チェック：内容が空、時間が1分未満の場合はエラー表示
 
-Currently, two official plugins are available:
+## 使用技術
+- Vite：開発サーバーと本番用のビルドを提供するツール
+- React：状態から画面を作る仕組みで、一覧の追加・編集・削除に向いている
+- TypeScript：データの形を型で定義し、書き間違いを実行前に検知する
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## 起動方法
+```bash
+npm install
+npm run dev
 ```
+- ブラウザで `http://localhost:5173` を開く。
+- 動作確認は、Node.js v24.14.0
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 設計で判断したこと
+### 1.合計時間の実装
+- 合計時間は状態にせず、描画の中で計算した。
+- 合計は、recordsから、いつでも計算できる値である。別の状態として持つと、recordsを更新するたびに、合計の更新も必要になり、更新を忘れると表示が食い違う。
+- そのため、描画の度にrecordsから計算する形にした。
+
+### 2.必要とする一番近い部品に状態を置いた
+- 編集中の状態は、行の部品が持つ。
+- 編集中の入力値とエラーは、その行でしか使わない。そのため、行の部品に持たせ、Appは更新と削除の依頼だけを受け取る形にした。
+- 結果として、複数の行を同時に編集でき、エラーも行ごとに表示される。
+
+### 3.壊れた保存データへの対策
+- localStorageのデータは、ユーザーが書き換えたり、保存に失敗したりして、壊れている可能性がある。
+- JSON.parseが失敗した状態でアプリを起動すると、Reactはエラーを受け止める仕組みがなければ、画面全体を外してしまう。
+- そのため、読み込みを try/catch で囲み、失敗したときは、初期データを使う形にした。
+- また、isValidでStudyRecord型の配列であることを確認してから使うようにした。
+
+### 4.部品の分け方について
+- 追加フォームはAppから切り出し、絞り込みは残した。
+- 理由としては、追加フォームは、その部品内で状態管理を完結でき、また、学習履歴アプリの追加した値の受け取り口としての役割に専念できるためだ。また、こうすることによって、行（編集）の入力エラーと別で管理できる。
+- 絞り込みの選択状態（filterCategory）は、選択欄と一覧の表示の両方が使う。2つの共通の親であるAppに置く方がシンプルなため、絞り込みは切り出さなかった。
+
+### 5.保存より先に読み込む
+- 状態をlocalStorageに保存する処理をuseEffectで実装して途中で確認したところ、再読み込みの直後の初期データで、保存済みのデータを上書きしてしまった。
+- 読み込みをuseStateの初期値の関数で行い、保存はその後に走るようにして解決した。
+
+## 今後の課題
+- 見た目（CSS）が未対応
+- 保存データの形の確認は配列かどうかまでで、各項目の型（minutesが数値か、など）は検証していない
+- 日付が選べない
+- テストがない
+- 欄ごとのエラー表示
+- カテゴリ別の集計表示（円グラフなど）

@@ -50,7 +50,7 @@ export function StudyRecordItem({ record, onUpdate, onDelete }: Props) {
         <li>
             { isEditing ? (
                 <>
-                    {record.date} <input type="text" value={editContent} onChange={(e) => setEditContent(e.target.value)} /> <input type="number" value={editMinutes} onChange={(e) => setEditMinutes(Number(e.target.value))}/> {record.category}
+                    {record.date} <input aria-label="内容編集" type="text" value={editContent} onChange={(e) => setEditContent(e.target.value)} /> <input aria-label="時間編集" type="number" value={editMinutes} onChange={(e) => setEditMinutes(Number(e.target.value))}/> {record.category}
                     <button onClick={handleEditSave}>保存</button>
                     <button onClick={handleEditCancel}>キャンセル</button>
                     {error && <p role="alert">{error}</p>}

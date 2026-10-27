@@ -28,9 +28,9 @@ export function AddRecordForm({ categories, onAdd }: Props) {
   return (
       <>
         <form onSubmit={handleSubmit}>
-            <input value={content} onChange={(e) => {setContent(e.target.value); setError("");}} />
-            <input type="number" value={minutes} onChange={(e) => {setMinutes(Number(e.target.value)); setError(""); }} />
-            <select value={category} onChange={(e) => {setCategory(e.target.value); setError("");}}>
+            <input aria-label="内容" value={content} onChange={(e) => {setContent(e.target.value); setError("");}} />
+            <input aria-label="時間" type="number" value={minutes} onChange={(e) => {setMinutes(Number(e.target.value)); setError(""); }} />
+            <select aria-label="区分" value={category} onChange={(e) => {setCategory(e.target.value); setError("");}}>
             {categories.map((c) => (
                 <option key={c} value={c}>{c}</option>
             ))}

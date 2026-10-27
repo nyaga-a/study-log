@@ -58,7 +58,7 @@ function App() {
       <AddRecordForm categories={categories} onAdd={handleAdd}/>
       <label>
         絞り込み：
-        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+        <select aria-label="絞り込み" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
           <option value="all">すべて</option>
           {categories.map((c) => (
             <option key={c} value={c}>{c}</option>
